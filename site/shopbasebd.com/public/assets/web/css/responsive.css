@@ -1,0 +1,123 @@
+@media (max-width: 991px) {
+  .hamburger {
+    display: block;
+  }
+
+  .desktop-buttons {
+    display: none;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    background: var(--sky-bg);
+    flex-direction: column;
+    gap: 25px;
+    padding: 20px;
+    border-radius: var(--radius-md);
+    width: 0%;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.4s ease;
+    align-items: start;
+  }
+  .nav-links.active {
+    height: 700px;
+    opacity: 1;
+    transition: all .6s ease;
+    width: 100%;
+  }
+  .nav-links a {
+    color: black;
+    width: 100%;
+  }
+  .mobile-buttons, .hero-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    width: 100%;
+  }
+  .mobile-buttons .btn-cta, .hero-btn{
+    margin: 0 !important;
+  }
+  .header-area.sticky .nav-links a{
+    color: black;
+  }
+  .header-area.sticky .buttons a{
+    color: white;
+  }
+  .header-area{
+    padding: 10px;
+  }
+  .hero-title { 
+    font-size: 2.8rem; 
+    text-align: center;
+  }
+  .hero-subtitle {
+    text-align: center;
+  }
+  .hero-image { 
+    margin-top: 40px; 
+  }
+  .stat-number { 
+    margin-bottom: 0px;
+  }
+  .service-card {
+    padding: 20px 5px;
+    display: flow;
+    text-align: center;
+  }
+  .service-card .icon {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  .service-card .icon img {
+    width: 25px;
+  }
+  .service-card .service-title {
+    text-align: center;
+    margin: 0px;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .service-card .service-title .fa{
+    font-size: 13px;
+  }
+  .feature-card .card-body{
+    padding: 15px;
+  }
+  .feature-card h5{
+    font-size: 17px;
+  }
+
+}
+
+@media (min-width: 992px) {
+  .mobile-buttons {
+    display: none;
+  }
+  .footer-sticky {
+    display: none;
+  }
+}
+
+@media (max-width: 767.98px){
+  .orange-panel { padding: 18px; }
+  .left-col { min-width: 58px; gap: 6px; }
+  .num-circle { width: 36px; height: 36px; font-size: 1rem; }
+  .dash { width: 26px; }
+  .pill { padding: 12px 14px; border-radius: 20px; }
+  .how-section { padding-top: 28px; padding-bottom: 28px; }
+  .hero-title { font-size: 2.3rem; }
+  .hero-subtitle { font-size: 1.1rem; }
+  .hero-btn { padding: 10px 20px; }
+}
+
+@media (max-width: 576px) {
+  .hero-section { padding: 130px 0 40px; }
+  .hero-title { font-size: 2rem; }
+  
+}

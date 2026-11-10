@@ -1,0 +1,43 @@
+name: Mirror shopbasebd.com
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/mirror.yml
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download site (HTML, CSS, JS, images, fonts)
+        run: |
+          mkdir -p site && cd site
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+          wget --mirror --page-requisites --adjust-extension --convert-links \
+               --span-hosts --domains=shopbasebd.com,www.shopbasebd.com \
+               --no-parent -e robots=off --user-agent="$UA" \
+               --wait=0.3 --random-wait --tries=3 --timeout=30 \
+               --reject-regex '(\?|&)(add-to-cart|remove_item|logout)=' \
+               https://shopbasebd.com/ 2>&1 | tail -n 40 || true
+          for f in robots.txt sitemap.xml sitemap_index.xml wp-sitemap.xml manifest.json sw.js; do
+            curl -sSL -A "$UA" -o "$f" -w "$f %{http_code}\n" "https://shopbasebd.com/$f" || true
+          done
+          find . -type f -size 0 -delete
+          echo "Files: $(find . -type f | wc -l)"; du -sh .
+          # 95MB-এর বেশি ফাইল GitHub নেয় না
+          find . -type f -size +95M -print -delete
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A site
+          git commit -m "shopbasebd.com snapshot $(date -u +%F)" || echo "nothing to commit"
+          git push

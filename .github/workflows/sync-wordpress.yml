@@ -1,0 +1,67 @@
+name: Sync site to WordPress
+
+# WordPress-এ "Noor Fashion Knitwear" নামে একটি পেজ তৈরি/আপডেট করে।
+# পেজের ভেতরে GitHub Pages-এ চলা সাইটটি দেখা যায়, তাই রিপোতে বদল পুশ করলেই সাইট নিজে আপডেট হয়।
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish page to WordPress
+        env:
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          APP_URL: "https://alamgirabdullahgh.github.io/shopbasebd-site-copy/site/shopbasebd.com/index.html"
+          SLUG: "noor-fashion-knitwear"
+          TITLE: "Noor Fashion Knitwear"
+        run: |
+          python3 - <<'PY'
+          import os, sys, json, base64, time, urllib.request, urllib.error
+
+          def die(m):
+              print("ERROR:", m); sys.exit(1)
+
+          base = os.environ["WP_URL"].rstrip("/")
+          auth = base64.b64encode(f'{os.environ["WP_USER"]}:{os.environ["WP_APP_PASSWORD"]}'.encode()).decode()
+          H = {"Authorization": "Basic " + auth, "Content-Type": "application/json",
+               "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
+
+          def call(url, data=None, method=None):
+              req = urllib.request.Request(url, data=data, method=method, headers=H)
+              try:
+                  with urllib.request.urlopen(req, timeout=60) as r:
+                      return r.status, r.read().decode("utf-8", "replace")
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode("utf-8", "replace")
+
+          st, _ = call(os.environ["APP_URL"])
+          if st != 200:
+              die(f"সাইটের GitHub Pages লিংক চালু নেই (HTTP {st})")
+
+          content = ('<style>.entry-content,.wp-block-post-content{max-width:none!important}</style>'
+                     f'<iframe src="{os.environ["APP_URL"]}" style="width:100%;height:100vh;min-height:900px;border:0" '
+                     'title="Noor Fashion Knitwear"></iframe>')
+          payload = json.dumps({"title": os.environ["TITLE"], "slug": os.environ["SLUG"],
+                                "status": "publish", "content": content}).encode()
+
+          st, out = call(f'{base}/wp-json/wp/v2/pages?slug={os.environ["SLUG"]}&status=any')
+          if st != 200 or out.lstrip().startswith("<"):
+              die(f"WordPress REST API-তে ঢুকতে পারেনি (HTTP {st}). শুরুর অংশ: {out[:200]!r}")
+          found = json.loads(out)
+          if found:
+              st, out = call(f'{base}/wp-json/wp/v2/pages/{found[0]["id"]}', payload, "POST")
+          else:
+              st, out = call(f'{base}/wp-json/wp/v2/pages', payload, "POST")
+          if st not in (200, 201):
+              die(f"পেজ সেভ হয়নি (HTTP {st}): {out[:300]}")
+          print("OK:", json.loads(out).get("link"))
+          PY

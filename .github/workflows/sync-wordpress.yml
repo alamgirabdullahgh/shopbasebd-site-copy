@@ -28,7 +28,7 @@ jobs:
           import os, sys, json, base64, time, urllib.request, urllib.error
 
           def die(m):
-              print("ERROR:", m); sys.exit(1)
+              print("::error::" + m.replace("\n"," ")[:400]); sys.exit(1)
 
           base = os.environ["WP_URL"].rstrip("/")
           auth = base64.b64encode(f'{os.environ["WP_USER"]}:{os.environ["WP_APP_PASSWORD"]}'.encode()).decode()

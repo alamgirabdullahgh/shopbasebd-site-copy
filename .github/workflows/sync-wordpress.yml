@@ -35,7 +35,42 @@ jobs:
           H = {"Authorization": "Basic " + auth, "Content-Type": "application/json",
                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
 
+          import re, subprocess
+          subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pycryptodome"], check=False)
+          from Crypto.Cipher import AES
+
+          def solve_challenge(html):
+              # InfinityFree-র বট পরীক্ষা: AES দিয়ে __test কুকি বানাতে হয়
+              m = re.findall(r'toNumbers\("([0-9a-f]+)"\)', html)
+              if len(m) < 3:
+                  return None
+              a, b, c = (bytes.fromhex(x) for x in m[:3])
+              return AES.new(a, AES.MODE_CBC, b).decrypt(c).hex()
+
+          COOKIE = {"v": None}
+
+          def raw(url, data=None, method=None):
+              h = dict(H)
+              if COOKIE["v"]:
+                  h["Cookie"] = "__test=" + COOKIE["v"]
+              req = urllib.request.Request(url, data=data, method=method, headers=h)
+              try:
+                  with urllib.request.urlopen(req, timeout=60) as r:
+                      return r.status, r.read().decode("utf-8", "replace")
+              except urllib.error.HTTPError as e:
+                  return e.code, e.read().decode("utf-8", "replace")
+
           def call(url, data=None, method=None):
+              st, out = raw(url, data, method)
+              if out.lstrip().startswith("<html><body><script") and "aes.js" in out:
+                  ck = solve_challenge(out)
+                  if ck:
+                      COOKIE["v"] = ck
+                      sep = "&" if "?" in url else "?"
+                      st, out = raw(url + sep + "i=1", data, method)
+              return st, out
+
+          def _unused(url, data=None, method=None):
               req = urllib.request.Request(url, data=data, method=method, headers=H)
               try:
                   with urllib.request.urlopen(req, timeout=60) as r:

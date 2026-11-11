@@ -41,7 +41,7 @@ jobs:
 
           base = os.environ["WP_URL"].rstrip("/")
           auth = base64.b64encode(f'{os.environ["WP_USER"]}:{os.environ["WP_APP_PASSWORD"]}'.encode()).decode()
-          H = {"Authorization": "Basic " + auth, "Content-Type": "application/json",
+          H = {"Authorization": "Basic " + auth, "X-Agent-Auth": auth, "Content-Type": "application/json",
                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36"}
 
           import re, subprocess

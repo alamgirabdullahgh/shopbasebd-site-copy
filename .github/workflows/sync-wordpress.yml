@@ -26,6 +26,10 @@ jobs:
         run: |
           python3 - <<'PY'
           import os, sys, json, base64, time, urllib.request, urllib.error
+          import traceback
+          def _hook(t, v, tb):
+              print("::error::" + (t.__name__ + ": " + str(v))[:350].replace("\n", " "))
+          sys.excepthook = _hook
 
           def die(m):
               print("::error::" + m.replace("\n"," ")[:400]); sys.exit(1)
